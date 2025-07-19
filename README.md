@@ -152,7 +152,3 @@ python -m src.main
 #### DELETE /api/chat/history/{session_id}
 
 대화 기록을 삭제합니다.
-
-## 라이센스
-
-이 프로젝트는 MIT 라이센스 하에 배포됩니다.
