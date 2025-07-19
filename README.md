@@ -1,136 +1,158 @@
 # 네이버 스마트스토어 FAQ 챗봇
 
-## 1. 프로젝트 개요
+스마트스토어 FAQ 데이터를 기반으로 한 RAG(Retrieval-Augmented Generation) 챗봇 API입니다.
 
-이 프로젝트는 네이버 스마트스토어 FAQ 데이터를 기반으로 한 챗봇을 구축하는 것입니다. 사용자가 스마트스토어 관련 질문을 하면 챗봇이 적절한 답변을 제공하고, 추가 질문을 유도하는 기능을 포함합니다. 챗봇은 RAG(Retrieval-Augmented Generation) 기법을 활용하여, 사용자 질문에 맞는 FAQ 데이터에서 정보를 검색하고, 그에 대한 답변을 생성합니다.
+## 기능
 
-## 2. 요구사항
+- 스마트스토어 FAQ 데이터 기반 질의응답
+- 대화 컨텍스트 관리 (세션별 대화 기록 유지)
+- 스트리밍 응답 지원
+- 도메인 외 질문 필터링
+- 후속 질문 추천
 
-### 기능 요구사항
+## 기술 스택
 
-- **대화 가능한 챗봇 API 구현**
-  - FastAPI를 활용하여 챗봇 API를 제공
-  - 스트리밍 방식으로 대화 가능
+- **언어**: Python 3.12
+- **프레임워크**: FastAPI
+- **임베딩 모델**: OpenAI text-embedding-3-small
+- **LLM**: OpenAI gpt-4o-mini
+- **벡터 DB**: ChromaDB
+- **기타 라이브러리**: tiktoken, numpy, tqdm 등
 
-- **RAG (Retrieval-Augmented Generation) 활용**
-  - FAQ 데이터(final_result.pkl)를 바탕으로 답변 생성
-  - 유저의 이전 질문과 맥락을 기반으로 적절한 답변 제공
-
-- **대화 기록 저장**
-  - 맥락에 맞는 답변을 위한 대화 기록 관리
-
-- **스마트스토어 관련 답변**
-  - 관련 없는 질문에는 안내 메시지 출력
-
-- **질의응답 시나리오 작성**
-  - 2가지 이상의 질의응답 시나리오 데모 제공
-
-### 기술 요구사항
-
-- **언어/프레임워크**: Python, FastAPI
-- **LLM/embedding 모델**: OpenAI API
-- **벡터 저장소**: Milvus 또는 Chroma
-- **기타**: pandas, numpy, requests 등
-
-## 3. 프로젝트 구조
+## 프로젝트 구조
 
 ```
-.
-├── app/
-│   ├── main.py                # FastAPI 애플리케이션
-│   ├── faq_handler.py         # FAQ 데이터를 처리하는 로직
-│   └── conversation_manager.py # 대화 기록을 관리하는 로직
-├── data/
-│   └── final_result.pkl       # 네이버 스마트스토어 FAQ 데이터
-├── requirements.txt           # 필요한 패키지 목록
-├── README.md                  # 프로젝트 설명서
-└── demo/
-    ├── demo1.txt              # 첫 번째 질의응답 시나리오
-    └── demo2.txt              # 두 번째 질의응답 시나리오
+src/
+  ├── cox/
+  │   ├── __init__.py
+  │   ├── config.py           # 환경 설정 관리
+  │   ├── data/
+  │   │   ├── __init__.py
+  │   │   ├── loader.py       # 데이터 로드 모듈
+  │   │   └── preprocessor.py # 데이터 전처리 모듈
+  │   ├── embedding/
+  │   │   ├── __init__.py
+  │   │   ├── chunker.py      # 오버랩 청킹 모듈
+  │   │   └── vectorizer.py   # 임베딩 생성 모듈
+  │   ├── retrieval/
+  │   │   ├── __init__.py
+  │   │   ├── vector_db.py    # 벡터 DB 관리 모듈
+  │   │   └── retriever.py    # 유사 문서 검색 모듈
+  │   ├── memory/
+  │   │   ├── __init__.py
+  │   │   └── conversation.py # 대화 컨텍스트 관리 모듈
+  │   ├── generation/
+  │   │   ├── __init__.py
+  │   │   ├── llm.py          # LLM 호출 모듈
+  │   │   └── prompt.py       # 프롬프트 템플릿 모듈
+  │   └── api/
+  │       ├── __init__.py
+  │       ├── app.py          # FastAPI 앱 정의
+  │       └── router.py       # API 엔드포인트 정의
+  └── main.py                 # 애플리케이션 진입점
 ```
 
-## 4. 설치 및 실행 방법
+## 설치 및 실행
 
 ### 1. 환경 설정
 
-먼저 프로젝트 디렉토리에서 requirements.txt 파일을 사용하여 필요한 Python 패키지를 설치합니다.
+먼저 프로젝트를 클론하고 필요한 패키지를 설치합니다.
 
 ```bash
-pip install -r requirements.txt
+# 저장소 클론
+git clone https://github.com/your-username/smart-store-faq-chatbot.git
+cd smart-store-faq-chatbot
+
+# 가상환경 생성 및 활성화 (선택사항)
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 패키지 설치
+pip install -e .
 ```
 
-### 2. FastAPI 서버 실행
+### 2. 환경 변수 설정
 
-FastAPI를 이용하여 챗봇 API 서버를 실행합니다.
+`.env` 파일을 생성하고 다음 내용을 추가합니다.
+
+```
+OPENAI_API_KEY=your-openai-api-key
+VECTOR_DB_PATH=./chroma_db
+FAQ_DATA_PATH=./faq_embeddings_with_vectors_overlapped.pkl
+API_HOST=0.0.0.0
+API_PORT=8000
+```
+
+### 3. 데이터 준비
+
+FAQ 데이터를 준비하고 임베딩합니다.
 
 ```bash
-uvicorn app.main:app --reload
+# 이미 임베딩된 데이터가 있는 경우
+python -m src.main --data-path=path/to/your/data.pkl
+
+# 인덱스를 재구축해야 하는 경우
+python -m src.main --data-path=path/to/your/data.pkl --rebuild-index
 ```
 
-서버가 실행되면, http://127.0.0.1:8000에서 챗봇 API를 호출할 수 있습니다.
+### 4. API 서버 실행
 
-### 3. 사용 방법
+```bash
+python -m src.main
+```
 
-API를 통해 질문을 보내고, 챗봇의 답변을 받을 수 있습니다.
+서버가 실행되면 `http://localhost:8000`에서 API를 사용할 수 있습니다.
 
-**POST 요청 예시:**
+## API 엔드포인트
 
+### 채팅 API
+
+#### POST /api/chat
+
+일반 채팅 API 엔드포인트입니다.
+
+**요청**:
 ```json
 {
-    "user_question": "미성년자도 판매 회원 등록이 가능한가요?"
+  "session_id": "optional-session-id",
+  "question": "미성년자도 판매 회원 등록이 가능한가요?"
 }
 ```
 
-**응답 예시:**
-
+**응답**:
 ```json
 {
-    "answer": "네이버 스마트스토어는 만 14세 미만의 개인(개인 사업자 포함) 또는 법인사업자는 입점이 불가함을 양해 부탁 드립니다.",
-    "follow_up_questions": [
-        "등록에 필요한 서류 안내해드릴까요?",
-        "등록 절차는 얼마나 오래 걸리는지 안내가 필요하신가요?"
-    ]
+  "session_id": "session-id",
+  "answer": "네이버 스마트스토어는 만 14세 미만의 개인(개인 사업자 포함) 또는 법인사업자는 입점이 불가함을 양해 부탁 드립니다...",
+  "follow_up_questions": [
+    "등록에 필요한 서류 안내해드릴까요?",
+    "등록 절차는 얼마나 오래 걸리는지 안내가 필요하신가요?"
+  ]
 }
 ```
 
-### 4. 챗봇과 상호작용
+#### POST /api/chat/stream
 
-챗봇은 사용자의 질문에 대해 적절한 답변을 제공하며, 대화 맥락을 유지하고 사용자가 궁금해할 만한 추가 질문도 유도합니다.
+스트리밍 채팅 API 엔드포인트입니다.
 
-### 5. 데모 실행
+**요청**:
+```json
+{
+  "session_id": "optional-session-id",
+  "question": "미성년자도 판매 회원 등록이 가능한가요?"
+}
+```
 
-demo/ 폴더 내에 있는 텍스트 파일을 통해 두 가지 이상의 질의응답 시나리오를 확인할 수 있습니다.
+**응답**: Server-Sent Events (SSE) 형식으로 응답이 스트리밍됩니다.
 
-## 5. 프로젝트 설명
+#### GET /api/chat/history/{session_id}
 
-### 1. 문제 해결 접근 방법
+대화 기록을 조회합니다.
 
-- **FAQ 데이터 처리**: final_result.pkl 파일을 로드하여, 사용자 질문에 맞는 FAQ 데이터 검색
-- **RAG 활용**: 벡터화된 FAQ 데이터를 기반으로 질문과 가장 유사한 항목을 검색하여 답변 생성
-- **대화 흐름 관리**: conversation_manager.py에서 대화의 맥락을 관리하여 후속 질문 유도
-- **비즈니스 로직**: 스마트스토어와 관련 없는 질문에 적절한 안내 메시지 출력
+#### DELETE /api/chat/history/{session_id}
 
-### 2. 챗봇의 답변 품질
+대화 기록을 삭제합니다.
 
-- FAQ 데이터에서 유사한 답변을 추출하며, 문맥을 고려하여 적절한 답변 제공
-- 사용자의 연속된 질문에 대해 관련 후속 질문을 유도하여 대화 지속
+## 라이센스
 
-### 3. 챗봇 성능 최적화
-
-- **답변 시간**: 로컬에 저장된 벡터로 FAQ 데이터를 검색하여 빠른 응답 제공
-- **비용 최적화**: OpenAI API 사용을 최소화하고 FAQ 데이터는 로컬에서 처리
-
-### 4. 코드 구조
-
-- **모듈화**: 각 기능을 분리된 파일로 모듈화하여 유지보수성 향상
-- **코드 스타일**: PEP8 준수, 명확한 함수 및 변수명 사용으로 가독성 향상
-
-### 5. 최종 제출 문서 품질
-
-- 프로젝트 구현 방법과 구조에 대한 상세 설명 제공
-- 데모 시나리오를 통한 실제 사용 사례 제공
-- requirements.txt를 포함한 실험 재현 가능한 환경 구성
-
-### 6. 깃허브 커밋 로그
-
-- 각 기능 개발 및 수정 사항에 대한 명확한 커밋 로그 작성
+이 프로젝트는 MIT 라이센스 하에 배포됩니다.
