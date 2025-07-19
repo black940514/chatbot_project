@@ -1,5 +1,3 @@
-"""Conversation memory module for managing conversation history."""
-
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 import json

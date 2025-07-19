@@ -1,7 +1,3 @@
-"""Entry point for the Smart Store FAQ chatbot application."""
-
-import os
-import pickle
 import argparse
 
 from cox.data.loader import load_faq_data
@@ -13,13 +9,9 @@ from cox.api.app import run_app
 
 def load_and_index_data(data_path: str = None, rebuild_index: bool = False):
     """
-    Load and index the FAQ data.
-    
-    Args:
-        data_path: Path to the FAQ data file.
-        rebuild_index: Whether to rebuild the vector index.
+    데이터 로드 및 벡터 인덱스 생성
     """
-    # Load the FAQ data
+    
     print("Loading FAQ data...")
     faq_data = load_faq_data(data_path)
     
@@ -54,17 +46,16 @@ def create_out_of_domain_response() -> str:
 
 
 def main():
-    """Main entry point."""
-    # Parse command line arguments
+    """엔트리 포인트"""
+
     parser = argparse.ArgumentParser(description="Smart Store FAQ Chatbot")
     parser.add_argument("--rebuild-index", action="store_true", help="Rebuild the vector index")
     parser.add_argument("--data-path", help="Path to the FAQ data file")
     args = parser.parse_args()
     
-    # Load and index the data
+
     load_and_index_data(args.data_path, args.rebuild_index)
-    
-    # Run the API
+
     print("Starting API server...")
     run_app()
 
