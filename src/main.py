@@ -15,14 +15,11 @@ def load_and_index_data(data_path: str = None, rebuild_index: bool = False):
     print("Loading FAQ data...")
     faq_data = load_faq_data(data_path)
     
-    # Create vector DB
     vector_db = VectorDB()
     
-    # Check if we need to rebuild the index
     if rebuild_index or vector_db.count() == 0:
         print("Building vector index...")
         
-        # Process and embed the FAQ data
         if "question_embedding" not in list(faq_data.values())[0]:
             print("Processing and embedding FAQ data...")
             chunked_data = process_qna_dict(faq_data)
@@ -30,8 +27,6 @@ def load_and_index_data(data_path: str = None, rebuild_index: bool = False):
         else:
             print("Using pre-embedded FAQ data...")
             embedded_data = faq_data
-        
-        # Add the data to the vector DB
         vector_db.add_faq_data(embedded_data)
         print(f"Added {vector_db.count()} documents to vector DB")
     else:
@@ -47,7 +42,6 @@ def create_out_of_domain_response() -> str:
 
 def main():
     """엔트리 포인트"""
-
     parser = argparse.ArgumentParser(description="Smart Store FAQ Chatbot")
     parser.add_argument("--rebuild-index", action="store_true", help="Rebuild the vector index")
     parser.add_argument("--data-path", help="Path to the FAQ data file")

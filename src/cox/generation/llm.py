@@ -5,7 +5,7 @@ import asyncio
 import re
 
 from ..config import CHAT_MODEL, OPENAI_API_KEY
-from .prompt import SYSTEM_PROMPT
+from .prompt import SYSTEM_PROMPT, create_follow_up_prompt
 
 
 # Set OpenAI API key
@@ -63,14 +63,7 @@ def generate_follow_up_questions(
     """
     후속 질문 생성 모듈
     """
-    prompt = f"""
-사용자 질문: {question}
-답변: {answer}
-
-위 대화를 바탕으로 사용자가 궁금해할만한 다른 내용 {n}개를 만들어 주세요.
-스마트스토어 관련 질문이어야 하며, 답변과 연관된 주제로 해 주세요.
-형식: ["질문1", "질문2"]
-"""
+    prompt = create_follow_up_prompt(question, answer, n)
 
     messages = [
         {"role": "system", "content": "You are a helpful QnA assistant that generates follow-up questions in Korean."},
@@ -78,15 +71,32 @@ def generate_follow_up_questions(
     ]
 
     try:
-        res = openai.chat.completions.create(model=model, messages=messages)
+        res = openai.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=0.7,
+            max_tokens=150,
+            top_p=0.95
+        )
         content = res.choices[0].message.content.strip()
 
         if not content.startswith("["):
             match = re.search(r"\[.*\]", content, re.DOTALL)
             content = match.group(0) if match else f'["{content}"]'
 
-        return json.loads(content)[:n]
+        follow_ups = json.loads(content)
+        
+        formatted_follow_ups = []
+        for q in follow_ups:
+            if not q.endswith("?") and not q.endswith("까?") and not q.endswith("요?"):
+                q += "?"
+            formatted_follow_ups.append(q)
+            
+        return formatted_follow_ups[:n]
 
     except Exception as e:
         print(f"후속 질문 생성 실패: {e}")
-        return ["다른 도움이 필요하신가요?", "더 궁금한 점이 있으신가요?"]
+        return [
+            "다른 정보가 필요하신가요?",
+            "추가로 궁금한 점이 있으신가요?"
+        ]
