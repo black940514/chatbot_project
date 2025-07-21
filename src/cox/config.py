@@ -16,14 +16,11 @@ FAQ_DATA_PATH = os.getenv("FAQ_DATA_PATH", "faq_embeddings_with_vectors_overlapp
 MAX_TOKENS_PER_CHUNK = 6000
 OVERLAP_RATIO = 0.2
 
-# Memory settings
-MAX_CONVERSATION_HISTORY = 5  # Number of previous exchanges to keep in memory
+MAX_CONVERSATION_HISTORY = 5 
 
-# API settings
 API_HOST = os.getenv("API_HOST", "0.0.0.0")
 API_PORT = int(os.getenv("API_PORT", "8000"))
 
-# Domain keywords for filtering out-of-domain questions
 DOMAIN_KEYWORDS = [
     "스마트스토어", "판매", "상품", "등록", "배송", "결제", "정산", "환불", 
     "취소", "반품", "교환", "네이버", "쇼핑", "가입", "계정", "판매자", 
