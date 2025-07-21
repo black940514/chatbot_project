@@ -45,7 +45,7 @@ src/
 **요청**:
 ```json
 {
-  "session_id": "optional-session-id",
+  "session_id": "session-id",
   "question": "미성년자도 판매 회원 등록이 가능한가요?"
 }
 ```
