@@ -57,6 +57,7 @@ class Conversation:
         """
         self.messages.append(Message(role, content))
         # messages가 (질문+답변) 쌍 기준으로 max_history*2를 넘으면 앞쪽을 자름
+        
         if len(self.messages) > self.max_history * 2:
             self.messages = self.messages[-self.max_history * 2:]
 

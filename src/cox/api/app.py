@@ -11,7 +11,6 @@ app = FastAPI(
     version="0.1.2"
 )
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,11 +19,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include router
 app.include_router(router, prefix="/api")
 
-
-# Add health check endpoint
 @app.get("/health")
 async def health_check():
     """
@@ -32,8 +28,6 @@ async def health_check():
     """
     return {"status": "ok"}
 
-
-# Run the app
 def run_app():
     """
     FastAPI 애플리케이션 실행
